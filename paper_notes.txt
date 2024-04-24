@@ -1,0 +1,126 @@
+PAPER 1 : Optimized preprocessing and Tiny ML for Attention State Classification
+
+--------------------------------------------
+
+Abstract :
+
+EEG => study mental processes (attention, perception, emotion)
+application => healthcare, HCI, education...
+paper goal => new approach to classify mental state from EEG thanks to signal processing + ML
+task => cognitive load task
+results => high accuracy in classification > SOTA and computation efficiency
+
+--------------------------------------------
+
+Intro :
+
+Attention => cognitive process that involves selection and prioritization of sensory info to process
+Goal of classifying mental states => education / neurofeedback
+EEG preprocessing => hard because non stationary / different from subject to subject etc...
+
+Previous research :
+SVM classifying 3 mental states => 91.72% acc (but train/test on a single subject, 7 chan)
+SVM classifying drowsiness => 96.11% acc (but train/test on a single subject, 3 chan)
+Some papers shows DL > ML
+
+Contribution :
+Optimize preprocessing to make it more suitable for Tiny ML (less comput, less engineers, less data)
+Explore different compositions of labeled EEG data on the classif results
+	Quantitative study on the parameters of feature extraction
+	Models SVM/XGB/RF/2 NNs
+
+--------------------------------------------
+
+Method :
+Pre-selection of the data
+Feature extraction
+Classification
+
+Data : 
+5 participants
+25 hours of EEG
+35-55 min per trial
+3 labels 
+	- focused but passive attention
+	- unfocused or detached but awake
+	- drowsy or on the verge of falling asleep
+7 channels (F3, F4, Fz, C4, C4, Cz, Pz)
+128Hz sampling rate
+3 different ways of balancing data 
+	- keep unbalanced one with a lot of drowsy state
+	- take only 10 min of drowsy state for 33/33/33
+	- take only 20 min of drowsy state for 50/50 between drowsy/non-drowsy
+Channel selection check results for 7/6/5 channels...
+
+Task :
+Microsoft train simulator
+10 first minutes => focused control of the simulated train (focused state)
+10 next minutes => no control from the participant (defocused state)
+End => relaxation (can close eyes etc...) (drowsy state)
+
+Features extraction :
+Analysis of frequency with fourier transform 
+	- STFT window length w_L (how zoomed/dezoomed is the analysis of the graph)
+	- STFT window shift w_S  (how much you move the window on the graph each time)
+	- STFT window function w_F (reduce noise for easier analysis on the graph / smoothing)
+Frequency binning (group frequencies in bin (size 0.5Hz) help ML to learn pattern 
+Band restriction (set boundaries on which freq we want to analyse, here 0 to 18Hz)
+Running average (smooth the spectrogram for overall trend, reduce noise)
+Scaling
+Train-test split
+	- split-by-sample : split train/test for each subject
+		- subject-specific : train/test on a single subject
+		- common-subject : train/test on all subject at once
+	- split-by-subject : train on a subject test on another
+		- leave-one-out : 4 subject train 1 subject test
+
+Classifiers :
+RF
+SVM 
+XGB
+NN
+	- DNN_4 : 2 hidden 64 neurons
+	- DNN_6 : DNN_4 + 2 hidden 128 neurons + 2 dropouts
+
+--------------------------------------------
+
+Experiments and results :
+
+1. Data length study
+
+7 Channels, same HP, leave-one-out, balanced accuracy
+Compare accuracy for d_L = 10/20/max => 10/20 seems better than max
+Compare recall for d_L = 10/20/max => 20/max seems better than 10
+==> Shows that balancing is important use d_L = 20 for rest of experiment
+
+2. STFT quantitative study
+
+feature quality decrease with increasing w_L and w_S
+use sample-sliding instead of window length ratio to avoid decrease in acc, best results w_S = 128, w_L = 4
+acc +6%
+
+3. Results of classification
+
+test 3 split paradigm with optimal parameters
+feature engineering effect : subject-specific paradigm, 96.7 -> 99.9 for best and 91.7 -> 99.8 for avg
+channel selection : common-subject study paradigm, best channels : Fz, F3, Pz. 
+	Random Forest > all with few channels
+	SVM > all with lot of channels
+models generalization : hard to generalize on feature extraction
+	use leave-one-out paradigm best results with DNN_6
+
+--------------------------------------------
+
+
+
+--------------------------------------------
+
+My own thoughts :
+
+For the last part of the task, isn't there some better stimulis for the drowsy state ?
+
+================================================================================
+
+PAPER 2 : Towards On-device Learning on the Edge: Ways to Select Neurons to Update under a Budget Constraint
+
+
