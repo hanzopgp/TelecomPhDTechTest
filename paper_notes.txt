@@ -123,4 +123,5 @@ For the last part of the task, isn't there some better stimulis for the drowsy s
 
 PAPER 2 : Towards On-device Learning on the Edge: Ways to Select Neurons to Update under a Budget Constraint
 
+Goal is to develop better methods than raw back propagation for on-device learning
 
