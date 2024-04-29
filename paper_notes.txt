@@ -125,3 +125,113 @@ PAPER 2 : Towards On-device Learning on the Edge: Ways to Select Neurons to Upda
 
 Goal is to develop better methods than raw back propagation for on-device learning
 
+static strategy : evaluate neurons on generic dataset and the subnet will remain static for whole training
+dynamic selection : it can change after every epochs (forward pass on whole dataset)
+
+to improve on device learning : 
+- find more efficient architcture (mobilenets, efficientnets...) / NAS (neural architecture search), quantization...
+- perform sparse weight updates (loading each layers input tensor during gradient computation is costly) / use SU (sparse update is and optimized static selection of a subset of layers, problem is it needs evolutionary algorithm)
+
+contribution : "we will present an approach embodying a different philosophy, challenging a static update graph allocation but rather identifying dynamically the partition of the model better to be updated."
+
+goal is to expand SU and NEq selection techniques
+
+--------------------------------------------
+
+SU
+
+1. sparse update fine tuning
+2. mobilenet mcunet...
+3. quantization
+4. tiny training engine (transform training into binary code)
+
+Lin et al tested with networks pre trained on image net and fine tune on Visual Wake Word classification, they froze the whole feature extraction part and only train the classification part
+
+results :
+- bias update works
+- test each ratio for each layer update
+- analysis of memory cost of each layers
+- anaylsis of SU selection: if u add each improvements from above u get improvement
+- they optimize bias update, layer update, cost with evolutionary algo, this algo returns a specific subset of layers ratios and bias depth to update = SU SCHEME
+
+problem : 
+- this is very expensive computation for the evo algo
+- potential overfitting bc we train the sames neurons again and again (bc its static)
+
+--------------------------------------------
+
+NEq
+
+goal is to reduce training time and cost without affecting perf
+they select neuerons to freeze throughout training
+
+maths part :
+they compare the output of each neuron after receiving an output at a certain epochs t to the output at epochs t-1 (on validation set) using cosine similarity
+the results informs us about the relationship betwwen input and output of the neuron
+we can quantify the variation between epochs
+equilibrium corresponds to this value being constant (it means the neurons has learn its i/o relationship
+we can compute a velocity, equilibrium is when velocity is inferior than a certain positive epsilon (it just mean that the neuron isn't learning anymore epochs to epochs)
+
+goal is to freeze the neurons at equilibrium to save computational cost
+
+difference with SU : doesnt need prior knowledge of target dataset so we don't need to optimize layer bias and stuff
++ it is done dynamically at each epochs
+
+problem : during the first epochs, almost all neurons velocities are high so memory cost is too high
+
+--------------------------------------------
+
+Budget-contraining approach
+
+goal is to use NEq with maximum budget constraint
+replace the epsilon threshold freezing condition with a budget for the whole neural network Bw (this is a number of updatable parameters). 
+goal is to rank all velocities of all neurons
+C_w_i is the number of parameters of the i-th neuron
+B_w_j is the sum of the number of parameters of each neurons
+problem is there is a bias for neurons with a higher number of parameters
+to compensate we use v_i = v_i/c_w_i which is velocity-per-parameter
+
+--------------------------------------------
+
+Training algorithm
+
+- pretrain model
+- load model to target device
+- static/dynamic neuron selection strategy
+- need a train/valid dataset for the down-stream task (valid dataset is used to compute neuron velocities)
+
+3 phase :
+- select the sub-network to be updated for first epochs : can start with random selection in compliance with max budged or can use SU if possible
+- train for one epoch
+- evaluate velocities and select new sub-network
+- iterate until a max epochs
+
+--------------------------------------------
+
+Experiments
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
